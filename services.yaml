@@ -1,0 +1,6 @@
+flip:
+  description: Flip the camera image.
+  fields:
+    entity_id:
+      description: Entity id.
+      example: "camera.living_room"

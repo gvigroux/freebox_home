@@ -1,0 +1,21 @@
+{
+    "config": {
+        "step": {
+            "link": {
+                "description": "Click \"Submit\", then touch the right arrow on the router to register Freebox with Home Assistant.\n\n![Location of button on the router](/static/images/config_freebox.png)",
+                "title": "Link Freebox router"
+            },
+            "permission": {
+                "description": "You need to go connect to http://mafreebox.freebox.fr/#Fbx.os.app.settings.Accounts and add the access: \"Gestion de l'alarme et maison connectée\"",
+                "title": " Permission is required"
+            },
+            "user": {
+                "data": {
+                    "host": "Host",
+                    "port": "Port"
+                },
+                "title": "Freebox"
+            }
+        }
+    }
+}
