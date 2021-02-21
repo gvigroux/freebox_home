@@ -56,43 +56,18 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
         """Initialize an Alarm"""
         super().__init__(hass, router, node)
 
-        self._command_trigger   = VALUE_NOT_SET # Trigger
-        self._command_alarm1    = VALUE_NOT_SET # Alarme principale
-        self._command_alarm2    = VALUE_NOT_SET # Alarme secondaire
-        self._command_skip      = VALUE_NOT_SET # Passer le délai
-        self._command_off       = VALUE_NOT_SET # Désactiver l'alarme
-        self._command_pin       = VALUE_NOT_SET # Code PIN
-        self._command_sound     = VALUE_NOT_SET # Puissance des bips
-        self._command_volume    = VALUE_NOT_SET # Puissance de la sirène
-        self._command_timeout1  = VALUE_NOT_SET # Délai avant armement
-        self._command_timeout2  = VALUE_NOT_SET # Délai avant sirène
-        self._command_timeout3  = VALUE_NOT_SET # Durée de la sirène
-
-        for endpoint in filter(lambda x:(x["ep_type"] == "slot"), node['type']['endpoints']):
-            if( endpoint["name"] == "pin" ):
-                self._command_pin = endpoint["id"]
-            elif( endpoint["name"] == "sound" ):
-                self._command_sound = endpoint["id"]
-            elif( endpoint["name"] == "volume" ):
-                self._command_volume = endpoint["id"]
-            elif( endpoint["name"] == "timeout1" ):
-                self._command_timeout1 = endpoint["id"]
-            elif( endpoint["name"] == "timeout2" ):
-                self._command_timeout2 = endpoint["id"]
-            elif( endpoint["name"] == "timeout3" ):
-                self._command_timeout3 = endpoint["id"]
-            elif( endpoint["name"] == "trigger" ):
-                self._command_trigger = endpoint["id"]
-            elif( endpoint["name"] == "alarm1" ):
-                self._command_alarm1 = endpoint["id"]
-            elif( endpoint["name"] == "alarm2" ):
-                self._command_alarm2 = endpoint["id"]
-            elif( endpoint["name"] == "skip" ):
-                self._command_skip = endpoint["id"]
-            elif( endpoint["name"] == "off" ):
-                self._command_off = endpoint["id"]
-
-        self._command_state = self.get_command_id(node['type']['endpoints'], "signal", "state" )
+        self._command_trigger   = self.get_command_id(node['type']['endpoints'], "slot", "trigger") # Trigger
+        self._command_alarm1    = self.get_command_id(node['type']['endpoints'], "slot", "alarm1") # Alarme principale
+        self._command_alarm2    = self.get_command_id(node['type']['endpoints'], "slot", "alarm2") # Alarme secondaire
+        self._command_skip      = self.get_command_id(node['type']['endpoints'], "slot", "skip") # Passer le délai
+        self._command_off       = self.get_command_id(node['type']['endpoints'], "slot", "off") # Désactiver l'alarme
+        self._command_pin       = self.get_command_id(node['type']['endpoints'], "slot", "pin") # Code PIN
+        self._command_sound     = self.get_command_id(node['type']['endpoints'], "slot", "sound") # Puissance des bips
+        self._command_volume    = self.get_command_id(node['type']['endpoints'], "slot", "volume") # Puissance de la sirène
+        self._command_timeout1  = self.get_command_id(node['type']['endpoints'], "slot", "timeout1") # Délai avant armement
+        self._command_timeout2  = self.get_command_id(node['type']['endpoints'], "slot", "timeout2") # Délai avant sirène
+        self._command_timeout3  = self.get_command_id(node['type']['endpoints'], "slot", "timeout3") # Durée de la sirène
+        self._command_state     = self.get_command_id(node['type']['endpoints'], "signal", "state" )
 
         self.set_state("idle")
         self._unsub_watcher = None
