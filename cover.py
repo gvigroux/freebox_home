@@ -67,14 +67,6 @@ class FreeboxBasicShutter(FreeboxBaseClass,CoverEntity):
         return None
 
     @property
-    def is_opening(self):
-        """Return if the cover is opening or not."""
-
-    @property
-    def is_closing(self):
-        """Return if the cover is closing or not."""
-
-    @property
     def is_closed(self):
         """Return if the cover is closed or not."""
         if(self._state == STATE_OPEN):

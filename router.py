@@ -7,11 +7,9 @@ from typing import Any, Dict, List, Optional
 from freebox_api import Freepybox
 from freebox_api.exceptions import HttpRequestError
 
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.typing import HomeAssistantType
@@ -109,7 +107,6 @@ async def get_api(hass: HomeAssistantType, host: str) -> Freepybox:
     """Get the Freebox API."""
     freebox_path = Path(hass.helpers.storage.Store(STORAGE_VERSION, STORAGE_KEY).path)
     freebox_path.mkdir(exist_ok=True)
-
     token_file = Path(f"{freebox_path}/{slugify(host)}.conf")
 
     return Freepybox(APP_DESC, token_file, API_VERSION)

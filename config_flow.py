@@ -30,8 +30,8 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_HOST, default=user_input.get(CONF_HOST, "")): str,
-                    vol.Required(CONF_PORT, default=user_input.get(CONF_PORT, "")): int,
+                    vol.Required(CONF_HOST, default=""): str,
+                    vol.Required(CONF_PORT, default=""): int,
                 }
             ),
             errors=errors or {},
@@ -41,7 +41,6 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         """Handle a flow initiated by the user."""
         errors = {}
-
         if user_input is None:
             return self._show_setup_form(user_input, errors)
 
@@ -55,7 +54,8 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_link()
 
 
-
+    async def async_step_unignore(self, user_input):
+        raise AbortFlow("Nothing to do?")
 
 
     async def async_step_link(self, user_input=None):
@@ -141,8 +141,8 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             raise AbortFlow("Invalid discovery info")
         if( not discovery_info["properties"]["device_type"].startswith("FreeboxServer7") ):
             raise AbortFlow("Invalid Freebox discovered. This Addon is only working with the Freebox Delta")
-        host = discovery_info["properties"].get('api_domain', None)
-        port = discovery_info["properties"].get('https_port', None)
-        if(host == None or port == None):
+        self._host = discovery_info["properties"].get('api_domain', None)
+        self._port = discovery_info["properties"].get('https_port', None)
+        if(self._host == None or self._port == None):
             raise AbortFlow("Invalid discovery info (missing domain or port)")
-        return await self.async_step_user({CONF_HOST: host, CONF_PORT: port})
+        return await self.async_step_user({CONF_HOST: self._host, CONF_PORT: self._port})

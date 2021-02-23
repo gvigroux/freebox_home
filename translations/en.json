@@ -7,15 +7,28 @@
             },
             "permission": {
                 "description": "You need to browse http://mafreebox.freebox.fr/#Fbx.os.app.settings.Accounts and grant the access policy: \"Gestion de l'alarme et maison connectée\"",
-                "title": " Permission is required"
+                "title": "Permission is required"
             },
             "user": {
+                "description": "Please enter your freebox details.\nYou can check this link to obtain the values: http://mafreebox.freebox.fr/api_version",
+                "title": "Freebox",
                 "data": {
                     "host": "Host",
                     "port": "Port"
-                },
-                "title": "Freebox"
+                }
             }
+        },
+        "error": {
+            "register_failed": "Failed to register, please try again",
+            "linking": "Unknown linking error occurred."
+        },
+        "abort": {
+            "discover_timeout": "Unable to discover Hue bridges",
+            "no_bridges": "No Philips Hue bridges discovered",
+            "all_configured": "All Philips Hue bridges are already configured",
+            "unknown": "Unknown error occurred",
+            "cannot_connect": "Unable to connect to the bridge",
+            "already_configured": "Bridge is already configured"
         }
     }
 }

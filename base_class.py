@@ -10,13 +10,21 @@ from .router import FreeboxRouter
 _LOGGER = logging.getLogger(__name__)
 
 class FreeboxBaseClass(Entity):
-    def __init__(self, hass, router: FreeboxRouter, node: Dict[str, any]) -> None:
+    def __init__(self, hass, router: FreeboxRouter, node: Dict[str, any], sub_node = None) -> None:
         _LOGGER.debug(node)
         self._hass = hass
         self._router = router
         self._id    = node["id"]
         self._name  = node["label"].strip()
+        self._device_name = node["label"].strip()
         self._unique_id = f"{self._router.mac}-node_{self._id}"
+        self._is_device = True
+
+        if(sub_node != None):
+            self._name = sub_node["label"].strip()
+            self._unique_id += "-" + sub_node["name"].strip()
+            self._is_device = False
+
         self._available = True
         self._firmware  = node['props'].get('FwVersion', None)
         self._manufacturer = "Free SAS"
@@ -29,6 +37,7 @@ class FreeboxBaseClass(Entity):
             self._model     = "F-HADWS01A"
         elif( node["category"]=="kfb" ):
             self._model     = "F-HAKFB01A"
+            self._is_device = True
         elif( node["category"]=="alarm" ):
             self._model     = "F-MSEC07A"
         elif( node["type"].get("inherit", None)=="node::rts"):
@@ -51,9 +60,11 @@ class FreeboxBaseClass(Entity):
     @property
     def device_info(self):
         """Return the device info."""
+        if (self._is_device == False):
+            return None
         return {
             "identifiers": {(DOMAIN, self._id)},
-            "name": self._name,
+            "name": self._device_name,
             "manufacturer": self._manufacturer,
             "model": self._model,
             "sw_version": self._firmware,
