@@ -1,0 +1,4 @@
+{
+    "name": "Freebox Home",
+    "iot_class": ["Assumed State", "Local Push", "Local Polling"]
+}
