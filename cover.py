@@ -17,30 +17,15 @@ from homeassistant.const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(hass, entry, async_add_entities):
     router = hass.data[DOMAIN][entry.unique_id]
-    tracked = set()
+    entities = []
 
-    @callback
-    def update_router():
-        add_entities(hass, router, async_add_entities, tracked)
-
-    router.listeners.append(async_dispatcher_connect(hass, router.signal_device_new, update_router))
-    update_router()
-
-@callback
-def add_entities(hass, router, async_add_entities, tracked):
-    """Add new cover from the router."""
-    new_tracked = []
     for nodeId, node in router.nodes.items():
-        if (node["category"]!="basic_shutter") or (node["id"] in tracked):
-            continue
-        new_tracked.append(FreeboxBasicShutter(hass, router, node))
-        tracked.add(node["id"] )
+        if node["category"]=="basic_shutter":
+            entities.append(FreeboxBasicShutter(hass, router, node))
 
-    if new_tracked:
-        async_add_entities(new_tracked, True)
-
+    async_add_entities(entities, True)
 
 
 class FreeboxBasicShutter(FreeboxBaseClass,CoverEntity):

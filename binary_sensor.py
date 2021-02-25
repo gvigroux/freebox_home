@@ -1,4 +1,4 @@
-"""Support for PIR"""
+"""Support for motion detector, door opener detector and check for sensor plastic cover """
 import logging
 
 from typing import Dict, Optional
@@ -25,11 +25,12 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
         cover_node = next(filter(lambda x: (x["name"]=="cover" and x["ep_type"]=="signal"), node["show_endpoints"]), None)
         if( cover_node != None and cover_node.get("value", None) != None):
-            entities.append(FreeboxCover(hass, router, node))
+            entities.append(FreeboxSensorCover(hass, router, node))
 
     async_add_entities(entities, True)
 
 
+''' Freebox moition detector sensor '''
 class FreeboxPir(FreeboxBaseClass, BinarySensorEntity):
 
     def __init__(self, hass, router: FreeboxRouter, node: Dict[str, any]) -> None:
@@ -40,9 +41,9 @@ class FreeboxPir(FreeboxBaseClass, BinarySensorEntity):
         self._unsub_watcher = async_track_time_interval(self._hass, self.async_update_pir, timedelta(seconds=1))
 
     async def async_update_pir(self, now: Optional[datetime] = None) -> None:
-        state = await self._router._api.home.get_home_endpoint_value(self._id, self._command_trigger)
-        if( self._detection == state["value"] ):
-            self._detection = not state["value"]
+        detection = await self.get_home_endpoint_value(self._command_trigger)
+        if( self._detection == detection ):
+            self._detection = not detection
             self.async_write_ha_state()
 
     @property
@@ -66,6 +67,17 @@ class FreeboxPir(FreeboxBaseClass, BinarySensorEntity):
         await super().async_will_remove_from_hass()
 
 
+''' Freebox door opener sensor '''
+class FreeboxDws(FreeboxPir):
+    def __init__(self, hass, router: FreeboxRouter, node: Dict[str, any]) -> None:
+        super().__init__(hass, router, node)
+
+    @property
+    def device_class(self):
+        """Return the class of this device, from component DEVICE_CLASSES."""
+        return DEVICE_CLASS_DOOR
+
+'''
 class FreeboxDws(FreeboxBaseClass, BinarySensorEntity):
     def __init__(self, hass, router: FreeboxRouter, node: Dict[str, any]) -> None:
         """Initialize a Dws"""
@@ -76,9 +88,9 @@ class FreeboxDws(FreeboxBaseClass, BinarySensorEntity):
         self._unsub_watcher = async_track_time_interval(self._hass, self.async_update_pir, timedelta(seconds=1))
 
     async def async_update_pir(self, now: Optional[datetime] = None) -> None:
-        state = await self._router._api.home.get_home_endpoint_value(self._id, self._command_trigger)
-        if( self._detection == state["value"] ):
-            self._detection = not state["value"]
+        detection = await self.get_home_endpoint_value(self._command_trigger)
+        if( self._detection == detection ):
+            self._detection = not detection
             self.async_write_ha_state()
 
     @property
@@ -100,9 +112,10 @@ class FreeboxDws(FreeboxBaseClass, BinarySensorEntity):
         """When entity will be removed from hass."""
         self._unsub_watcher()
         await super().async_will_remove_from_hass()
+'''
 
-        
-class FreeboxCover(FreeboxBaseClass, BinarySensorEntity):
+''' Freebox cover check for some sensors (motion detector, door opener detector...) '''
+class FreeboxSensorCover(FreeboxBaseClass, BinarySensorEntity):
     def __init__(self, hass, router: FreeboxRouter, node: Dict[str, any]) -> None:
         """Initialize a Cover for anothe Device"""
         # Get cover node
@@ -110,11 +123,10 @@ class FreeboxCover(FreeboxBaseClass, BinarySensorEntity):
         super().__init__(hass, router, node, cover_node)
         self._command_cover = self.get_command_id(node['show_endpoints'], "signal", "cover")
         self._open = False
-        self._unsub_watcher = async_track_time_interval(self._hass, self.async_update_pir, timedelta(seconds=1))
+        self._unsub_watcher = async_track_time_interval(self._hass, self.async_update_pir, timedelta(seconds=3))
 
     async def async_update_pir(self, now: Optional[datetime] = None) -> None:
-        state = await self._router._api.home.get_home_endpoint_value(self._id, self._command_cover)
-        self._open = state["value"]
+        self._open = await self.get_home_endpoint_value(self._command_cover)
         self.async_write_ha_state()
 
     @property

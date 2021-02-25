@@ -50,7 +50,7 @@ from .router import FreeboxRouter
 
 _LOGGER = logging.getLogger(__name__)
 
-
+'''
 async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> None:
     router = hass.data[DOMAIN][entry.unique_id]
     tracked = set()
@@ -65,6 +65,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> Non
     platform = entity_platform.current_platform.get()
     platform.async_register_entity_service("flip",{},"async_flip",)
 
+
 @callback
 def add_entities(hass, router, async_add_entities, tracked):
     """Add new cover from the router."""
@@ -78,6 +79,19 @@ def add_entities(hass, router, async_add_entities, tracked):
 
     if new_tracked:
         async_add_entities(new_tracked, True)
+'''
+
+async def async_setup_entry(hass, entry, async_add_entities):
+    router = hass.data[DOMAIN][entry.unique_id]
+    entities = []
+
+    for nodeId, node in router.nodes.items():
+        if node["category"]=="camera":
+            entities.append(FreeboxCamera(hass, router, node))
+
+    async_add_entities(entities, True)
+    platform = entity_platform.current_platform.get()
+    platform.async_register_entity_service("flip",{},"async_flip",)
 
 
     
@@ -86,12 +100,7 @@ class FreeboxCamera(FreeboxBaseClass, FFmpegCamera):
         """Initialize a camera."""
         super().__init__(hass, router, node)
 
-        device_info = {
-            CONF_NAME: node["label"].strip(),
-            CONF_INPUT: node["props"]["Stream"],
-            CONF_EXTRA_ARGUMENTS: DEFAULT_ARGUMENTS 
-        }
-
+        device_info = {CONF_NAME: node["label"].strip(),CONF_INPUT: node["props"]["Stream"],CONF_EXTRA_ARGUMENTS: DEFAULT_ARGUMENTS }
         FFmpegCamera.__init__(self, hass, device_info)
         
         self._supported_features = SUPPORT_STREAM
@@ -99,7 +108,6 @@ class FreeboxCamera(FreeboxBaseClass, FFmpegCamera):
         
         self._command_flip              = self.get_command_id(node['show_endpoints'], "slot", "flip")
         self._command_motion_detection  = self.get_command_id(node['type']['endpoints'], "slot", "detection")
-
 
     async def async_flip(entity):
         entity._flip = not entity._flip

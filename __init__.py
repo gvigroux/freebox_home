@@ -1,10 +1,8 @@
 """Support for Freebox devices (Freebox v6 and Freebox mini 4K)."""
 import asyncio
 import logging
-
 import voluptuous as vol
 
-from homeassistant.components.discovery import SERVICE_FREEBOX
 from homeassistant.config_entries import SOURCE_DISCOVERY, ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers import config_validation as cv, discovery
@@ -15,29 +13,8 @@ from .router import FreeboxRouter
 
 _LOGGER = logging.getLogger(__name__)
 
-
 async def async_setup(hass, config):
-    """Set up the Freebox component."""
-    conf = config.get(DOMAIN)
-
-    async def discovery_dispatch(service, discovery_info):
-        _LOGGER.error("discovery_dispatch")
-        if conf is None:
-            host = discovery_info.get("properties", {}).get("api_domain")
-            port = discovery_info.get("properties", {}).get("https_port")
-            _LOGGER.info("Discovered Freebox server: %s:%s", host, port)
-            hass.async_create_task(
-                hass.config_entries.flow.async_init(
-                    DOMAIN,
-                    context={"source": SOURCE_DISCOVERY},
-                    data={CONF_HOST: host, CONF_PORT: port},
-                )
-            )
-
-    discovery.async_listen(hass, SERVICE_FREEBOX, discovery_dispatch)
-
     return True
-
 
 async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     """Set up Freebox component."""
@@ -48,9 +25,7 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry):
     hass.data[DOMAIN][entry.unique_id] = router
 
     for platform in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, platform)
-        )
+        hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, platform))
 
     async def async_close_connection(event):
         """Close Freebox connection on HA Stop."""

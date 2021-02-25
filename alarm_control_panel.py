@@ -11,8 +11,8 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
 from datetime import datetime, timedelta
-from .base_class import FreeboxBaseClass
 
+from .base_class import FreeboxBaseClass
 from .const import DOMAIN, VALUE_NOT_SET
 from .router import FreeboxRouter
 
@@ -118,8 +118,10 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
 
 
     def update_parameters(self, node):
+        #Update name
+        self._name = node["label"].strip()
 
-        #search Alarm2
+        #Search if Alarm2
         has_alarm2 = False
         for nodeId, local_node in self._router.nodes.items():
             alarm2 = next(filter(lambda x: (x["name"]=="alarm2" and x["ep_type"]=="signal"), local_node['show_endpoints']), None)
@@ -133,8 +135,6 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
             self._supported_features = SUPPORT_ALARM_ARM_AWAY
 
 
-        self._name = node["label"].strip()
-        
         # Parse all endpoints values
         for endpoint in filter(lambda x:(x["ep_type"] == "signal"), node['show_endpoints']):
             if( endpoint["name"] == "pin" ):

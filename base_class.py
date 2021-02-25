@@ -23,7 +23,7 @@ class FreeboxBaseClass(Entity):
         if(sub_node != None):
             self._name = sub_node["label"].strip()
             self._unique_id += "-" + sub_node["name"].strip()
-            self._is_device = False
+            #self._is_device = False
 
         self._available = True
         self._firmware  = node['props'].get('FwVersion', None)
