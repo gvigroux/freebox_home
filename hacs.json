@@ -1,4 +1,5 @@
 {
     "name": "Freebox Home",
+    "content_in_root": true,
     "iot_class": ["Assumed State", "Local Push", "Local Polling"]
 }
