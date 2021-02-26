@@ -8,5 +8,5 @@
   "dependencies": ["ffmpeg"],
   "after_dependencies": ["zeroconf"],
   "zeroconf": ["_fbx-api._tcp.local."],
-  "codeowners": []
+  "codeowners": ["gvigroux"]
 }
