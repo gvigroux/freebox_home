@@ -54,7 +54,7 @@ class FreeboxRouter:
         """Update all nodes"""
         fbx_nodes: Dict[str, Any] = await self._api.home.get_home_nodes()
         for fbx_node in fbx_nodes:
-            if( fbx_node["category"] not in ["pir","camera","alarm","dws","kfb","basic_shutter"] ):
+            if( fbx_node["category"] not in ["pir","camera","alarm","dws","kfb","basic_shutter","shutter"] ):
                 _LOGGER.warning("Node not supported: \n" +str(fbx_node))
                 continue
             self.nodes[fbx_node["id"]] = fbx_node
