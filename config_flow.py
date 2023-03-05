@@ -137,12 +137,12 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_zeroconf(self, discovery_info):
         """Initialize step from zeroconf discovery."""
-        if( discovery_info.get('properties', None) == None or discovery_info["properties"].get('device_type', None) == None):
+        if( discovery_info.properties.get('device_type', None) == None):
             raise AbortFlow("Invalid discovery info")
-        if( not discovery_info["properties"]["device_type"].startswith("FreeboxServer7") ):
+        if( not discovery_info.properties.get('device_type').startswith("FreeboxServer7") ):
             raise AbortFlow("Invalid Freebox discovered. This Addon is only working with the Freebox Delta")
-        self._host = discovery_info["properties"].get('api_domain', None)
-        self._port = discovery_info["properties"].get('https_port', None)
+        self._host = discovery_info.properties.get('api_domain', None)
+        self._port = discovery_info.properties.get('https_port', None)
         if(self._host == None or self._port == None):
             raise AbortFlow("Invalid discovery info (missing domain or port)")
         return await self.async_step_user({CONF_HOST: self._host, CONF_PORT: self._port})

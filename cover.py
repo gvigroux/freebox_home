@@ -24,6 +24,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
     for nodeId, node in router.nodes.items():
         if node["category"]=="basic_shutter":
             entities.append(FreeboxBasicShutter(hass, router, node))
+        elif node["category"]=="shutter":
+            entities.append(FreeboxShutter(hass, router, node))
 
     async_add_entities(entities, True)
 
@@ -89,3 +91,59 @@ class FreeboxBasicShutter(FreeboxBaseClass,CoverEntity):
             return STATE_OPEN
         else:
             return None
+
+class FreeboxShutter(FreeboxBaseClass,CoverEntity):
+
+    def __init__(self, hass, router, node) -> None:
+        """Initialize a Cover"""
+        super().__init__(hass, router, node)
+        self._command_position = self.get_command_id(node['type']['endpoints'], "slot", "position_set")
+        self._command_up = self.get_command_id(node['type']['endpoints'], "slot", "position_set")
+        self._command_down = self.get_command_id(node['type']['endpoints'], "slot", "position_set")
+        self._command_stop  = self.get_command_id(node['show_endpoints'], "slot", "stop")
+        self._command_toggle = self.get_command_id(node['show_endpoints'], "slot", "toggle")
+        self._command_state = self.get_command_id(node['type']['endpoints'], "signal", "position_set")
+        self._state         = self.get_node_value(node['show_endpoints'], "signal", "state")
+
+    @property
+    def device_class(self) -> str:
+        return DEVICE_CLASS_SHUTTER
+
+    @property
+    def current_cover_position(self):
+        return self._state
+
+    @property
+    def current_cover_tilt_position(self):
+        return None
+
+    @property
+    def is_closed(self):
+        """Return if the cover is closed or not."""
+        if(self._state == 100):
+            return True
+        return False
+
+    async def async_set_cover_position(self, position, **kwargs):
+        """Set cover position."""
+        await self.set_home_endpoint_value(self._command_position, {"value": position})
+        self._state = STATE_OPEN
+
+    async def async_open_cover(self, **kwargs):
+        """Open cover."""
+        await self.set_home_endpoint_value(self._command_up, {"value": 0})
+
+    async def async_close_cover(self, **kwargs):
+        """Close cover."""
+        await self.set_home_endpoint_value(self._command_down, {"value": 100})
+
+    async def async_stop_cover(self, **kwargs):
+        """Stop cover."""
+        await self.set_home_endpoint_value(self._command_stop, {"value": None})
+        self._state = None
+
+    async def async_update(self):
+        """Get the state & name and update it."""
+        node = self._router.nodes[self._id];
+        self._name = node["label"].strip()
+        self._state = await self.get_home_endpoint_value(self._command_state)      
