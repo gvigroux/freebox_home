@@ -164,10 +164,10 @@ class FreeboxCamera(FreeboxBaseClass, FFmpegCamera):
         self._name = node["label"].strip()
 
         # Get status
-        if( node["status"] == "active"):
-            self.is_streaming = True
-        else:
-            self.is_streaming = False
+        #if( node["status"] == "active"):
+        #    self.is_streaming = True
+        #else:
+        #    self.is_streaming = False
 
         #self.is_recording?
 

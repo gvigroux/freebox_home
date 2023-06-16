@@ -130,7 +130,7 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
                 break
 
         if( has_alarm2 ):
-            self._supported_features = SUPPORT_ALARM_ARM_AWAY | SUPPORT_ALARM_ARM_NIGHT
+            self._supported_features = SUPPORT_ALARM_ARM_AWAY | SUPPORT_ALARM_ARM_NIGHT | SUPPORT_ALARM_ARM_HOME
         else:
             self._supported_features = SUPPORT_ALARM_ARM_AWAY
 

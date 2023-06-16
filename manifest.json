@@ -9,5 +9,5 @@
   "after_dependencies": ["zeroconf"],
   "zeroconf": ["_fbx-api._tcp.local."],
   "codeowners": ["gvigroux"],
-  "version": "0.4"
+  "version": "0.5"
 }

@@ -30,7 +30,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     async_add_entities(entities, True)
 
 
-''' Freebox moition detector sensor '''
+''' Freebox motion detector sensor '''
 class FreeboxPir(FreeboxBaseClass, BinarySensorEntity):
 
     def __init__(self, hass, router: FreeboxRouter, node: Dict[str, any]) -> None:
