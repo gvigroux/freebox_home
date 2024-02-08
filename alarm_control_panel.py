@@ -17,13 +17,7 @@ from .const import DOMAIN, VALUE_NOT_SET
 from .router import FreeboxRouter
 
 
-from homeassistant.components.alarm_control_panel.const import (
-    SUPPORT_ALARM_ARM_AWAY,
-    SUPPORT_ALARM_ARM_CUSTOM_BYPASS,
-    SUPPORT_ALARM_ARM_HOME,
-    SUPPORT_ALARM_ARM_NIGHT,
-    SUPPORT_ALARM_TRIGGER,
-)
+from homeassistant.components.alarm_control_panel.const import AlarmControlPanelEntityFeature
 
 from homeassistant.const import (
     STATE_ALARM_DISARMED,
@@ -71,7 +65,7 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
 
         self.set_state("idle")
         self._unsub_watcher = None
-        self._supported_features = SUPPORT_ALARM_ARM_AWAY
+        self._supported_features = AlarmControlPanelEntityFeature.ARM_AWAY
         self.update_parameters(node)
 
     @property
@@ -130,9 +124,9 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
                 break
 
         if( has_alarm2 ):
-            self._supported_features = SUPPORT_ALARM_ARM_AWAY | SUPPORT_ALARM_ARM_NIGHT | SUPPORT_ALARM_ARM_HOME
+            self._supported_features = AlarmControlPanelEntityFeature.ARM_AWAY | AlarmControlPanelEntityFeature.ARM_NIGHT | AlarmControlPanelEntityFeature.ARM_HOME
         else:
-            self._supported_features = SUPPORT_ALARM_ARM_AWAY
+            self._supported_features = AlarmControlPanelEntityFeature.ARM_AWAY
 
 
         # Parse all endpoints values

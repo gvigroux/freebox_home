@@ -1,4 +1,5 @@
-from homeassistant.const import DEVICE_CLASS_BATTERY, PERCENTAGE
+from homeassistant.const import PERCENTAGE
+from homeassistant.components.sensor import SensorDeviceClass
 from .base_class import FreeboxBaseClass
 from .const import DOMAIN
 
@@ -23,7 +24,7 @@ class FreeboxBatterySensor(FreeboxBaseClass):
     @property
     def device_class(self):
         """Return the devices' state attributes."""
-        return DEVICE_CLASS_BATTERY
+        return SensorDeviceClass.BATTERY
 
     @property
     def state(self):
