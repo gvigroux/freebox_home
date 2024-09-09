@@ -12,6 +12,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.util import slugify
+from homeassistant.helpers.storage import Store
 
 from .const import APP_DESC, DOMAIN, STORAGE_KEY, STORAGE_VERSION, API_VERSION
 
@@ -70,7 +71,9 @@ class FreeboxRouter:
 
 async def get_api(hass, host: str) -> Freepybox:
     """Get the Freebox API."""
-    freebox_path = Path(hass.helpers.storage.Store(STORAGE_VERSION, STORAGE_KEY).path)
+    #freebox_path = Path(hass.helpers.storage.Store(STORAGE_VERSION, STORAGE_KEY).path)
+    freebox_path = Path(Store(hass, STORAGE_VERSION, STORAGE_KEY).path)
     freebox_path.mkdir(exist_ok=True)
+
     token_file = Path(f"{freebox_path}/{slugify(host)}.conf")
     return Freepybox(APP_DESC, token_file, API_VERSION)

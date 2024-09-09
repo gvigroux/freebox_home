@@ -24,8 +24,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.unique_id] = router
 
-    for platform in PLATFORMS:
-        hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, platform))
+    #for platform in PLATFORMS:
+    #    hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, platform))
+
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     async def async_close_connection(event):
         """Close Freebox connection on HA Stop."""
