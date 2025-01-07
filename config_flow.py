@@ -6,7 +6,6 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
-from homeassistant.data_entry_flow import AbortFlow
 
 from .const import DOMAIN
 from .router import get_api
@@ -55,7 +54,7 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
 
     async def async_step_unignore(self, user_input):
-        raise AbortFlow("Nothing to do?")
+        self.async_abort(reason="nothing_to_do")
 
 
     async def async_step_link(self, user_input=None):
@@ -82,12 +81,6 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             await fbx.close()
 
             return self.async_show_form(step_id="permission")
-            '''
-            return self.async_create_entry(
-                title=self._host,
-                data={CONF_HOST: self._host, CONF_PORT: self._port},
-            )
-            '''
 
         except AuthorizationError as error:
             _LOGGER.error(error)
@@ -101,7 +94,6 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.exception("Unknown error connecting with Freebox router at %s", self._host)
             errors["base"] = "unknown"
         return self.async_show_form(step_id="link", errors=errors)
-
 
 
     # Ask for HOME permission
@@ -120,7 +112,7 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         except InsufficientPermissionsError as error:
             _LOGGER.error(error)
-            errors["base"] = "unknown"
+            errors["base"] = "insufficient_permissions"
 
         except Exception:
             _LOGGER.exception("Unknown error connecting with Freebox router at %s", self._host)
@@ -137,12 +129,12 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_zeroconf(self, discovery_info):
         """Initialize step from zeroconf discovery."""
-        if( discovery_info.properties.get('device_type', None) == None):
-            raise AbortFlow("Invalid discovery info")
-        if( not discovery_info.properties.get('device_type').startswith("FreeboxServer7") ):
-            raise AbortFlow("Invalid Freebox discovered. This Addon is only working with the Freebox Delta")
+        if discovery_info.properties.get('device_type', None) is None:
+            self.async_abort(reason="invalid_discovery_info")
+        if not discovery_info.properties.get('device_type').startswith("FreeboxServer7"):
+            self.async_abort(reason="invalid_freebox")
         self._host = discovery_info.properties.get('api_domain', None)
         self._port = discovery_info.properties.get('https_port', None)
-        if(self._host == None or self._port == None):
-            raise AbortFlow("Invalid discovery info (missing domain or port)")
+        if self._host is None or self._port is None:
+            self.async_abort(reason="invalid_discovery_info")
         return await self.async_step_user({CONF_HOST: self._host, CONF_PORT: self._port})
