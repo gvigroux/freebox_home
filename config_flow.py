@@ -6,7 +6,7 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
-from homeassistant.data_entry_flow import RESULT_TYPE_ABORT, AbortFlow
+from homeassistant.data_entry_flow import FlowResultType.ABORT, AbortFlow
 
 from .const import DOMAIN  # pylint: disable=unused-import
 from .router import get_api
