@@ -18,11 +18,11 @@ from .router import FreeboxRouter
 
 
 from homeassistant.components.alarm_control_panel.const import (
-    SUPPORT_ALARM_ARM_AWAY,
-    SUPPORT_ALARM_ARM_CUSTOM_BYPASS,
-    SUPPORT_ALARM_ARM_HOME,
-    SUPPORT_ALARM_ARM_NIGHT,
-    SUPPORT_ALARM_TRIGGER,
+    AlarmControlPanelEntityFeature.ARM_AWAY,
+    AlarmControlPanelEntityFeature.ARM_CUSTOM_BYPASS,
+    AlarmControlPanelEntityFeature.ARM_HOME,
+    AlarmControlPanelEntityFeature.ARM_NIGHT,
+    AlarmControlPanelEntityFeature.TRIGGER,
 )
 
 from homeassistant.const import (
