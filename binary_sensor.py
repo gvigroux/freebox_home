@@ -2,7 +2,7 @@
 import logging
 
 from typing import Dict, Optional
-from homeassistant.components.binary_sensor import BinarySensorEntity, DEVICE_CLASS_MOTION, DEVICE_CLASS_DOOR
+from homeassistant.components.binary_sensor import BinarySensorEntity, BinarySensorDeviceClass.MOTION, BinarySensorDeviceClass.DOOR
 from homeassistant.helpers.event import async_track_time_interval
 from datetime import datetime, timedelta
 
@@ -55,7 +55,7 @@ class FreeboxPir(FreeboxBaseClass, BinarySensorEntity):
     @property
     def device_class(self):
         """Return the class of this device, from component DEVICE_CLASSES."""
-        return DEVICE_CLASS_MOTION
+        return BinarySensorDeviceClass.MOTION
     
     async def async_will_remove_from_hass(self):
         """When entity will be removed from hass."""
@@ -94,7 +94,7 @@ class FreeboxDws(FreeboxBaseClass, BinarySensorEntity):
     @property
     def device_class(self):
         """Return the class of this device, from component DEVICE_CLASSES."""
-        return DEVICE_CLASS_DOOR
+        return BinarySensorDeviceClass.DOOR
     
     async def async_will_remove_from_hass(self):
         """When entity will be removed from hass."""
