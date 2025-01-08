@@ -39,6 +39,7 @@ class FreeboxRouter:
 
         try:
             await self._api.open(self._host, self._port)
+            #result = await self.hass.async_add_executor_job(self._api.open(self._host, self._port), "open")
         except HttpRequestError:
             _LOGGER.exception("Failed to connect to Freebox")
             return ConfigEntryNotReady

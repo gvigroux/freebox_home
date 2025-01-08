@@ -17,19 +17,11 @@ from .const import DOMAIN, VALUE_NOT_SET
 from .router import FreeboxRouter
 
 
-from homeassistant.components.alarm_control_panel.const import AlarmControlPanelEntityFeature
-
-from homeassistant.const import (
-    STATE_ALARM_DISARMED,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_NIGHT,
-    STATE_ALARM_ARMED_CUSTOM_BYPASS,
-    STATE_ALARM_PENDING,
-    STATE_ALARM_ARMING,
-    STATE_ALARM_DISARMING,
-    STATE_ALARM_TRIGGERED,
+from homeassistant.components.alarm_control_panel.const import (
+    AlarmControlPanelEntityFeature,
+    AlarmControlPanelState,
 )
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -148,19 +140,19 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
 
     def set_state(self, state):
         if( state == "alarm1_arming"):
-            self._state = STATE_ALARM_ARMING
+            self._state = AlarmControlPanelState.ARMING
         elif( state == "alarm2_arming"):
-            self._state = STATE_ALARM_ARMING
+            self._state = SAlarmControlPanelState.ARMING
         elif( state == "alarm1_armed"):
-            self._state = STATE_ALARM_ARMED_AWAY
+            self._state = AlarmControlPanelState.ARMED_AWAY
         elif( state == "alarm2_armed"):
-            self._state = STATE_ALARM_ARMED_NIGHT
+            self._state = AlarmControlPanelState.ARMED_NIGHT
         elif( state == "alarm1_alert_timer"):
-            self._state = STATE_ALARM_TRIGGERED
+            self._state = AlarmControlPanelState.TRIGGERED
         elif( state == "alarm2_alert_timer"):
-            self._state = STATE_ALARM_TRIGGERED
+            self._state = AlarmControlPanelState.TRIGGERED
         elif( state == "alert"):
-            self._state = STATE_ALARM_TRIGGERED
+            self._state = AlarmControlPanelState.TRIGGERED
         else:
-            self._state = STATE_ALARM_DISARMED
+            self._state = AlarmControlPanelState.DISARMED
 
