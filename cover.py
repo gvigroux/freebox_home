@@ -3,7 +3,7 @@ import logging
 import json
 from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.components.cover import CoverEntity, DEVICE_CLASS_SHUTTER
+from homeassistant.components.cover import CoverEntity, CoverDeviceClass.SHUTTER
 from .const import DOMAIN
 from .base_class import FreeboxBaseClass
 
@@ -56,7 +56,7 @@ class FreeboxBasicShutter(FreeboxBaseClass,CoverEntity):
 
     @property
     def device_class(self) -> str:
-        return DEVICE_CLASS_SHUTTER
+        return CoverDeviceClass.SHUTTER
 
     @property
     def current_cover_position(self):
