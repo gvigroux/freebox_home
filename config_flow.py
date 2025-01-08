@@ -68,17 +68,12 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_show_form(step_id="link")
 
         errors = {}
-        _LOGGER.error("start get_api")
         fbx = await get_api(self.hass, self._host)
-        _LOGGER.error("stop get_api")
-        _LOGGER.error(self.hass)
-        _LOGGER.error(self._host)
         
         try:
             # Open connection and check authentication
             await fbx.open(self._host, self._port)
-            _LOGGER.error("stop fbx.open")
-
+            
             # Check permissions
             await fbx.system.get_config()
             await self.hass.async_block_till_done()
