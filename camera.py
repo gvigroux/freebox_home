@@ -21,8 +21,8 @@ from homeassistant.components.ffmpeg.camera import (
 from homeassistant.components.camera import (
     DEFAULT_CONTENT_TYPE,
     PLATFORM_SCHEMA,
-    SUPPORT_STREAM,
-    SUPPORT_ON_OFF,
+    CameraEntityFeature.STREAM,
+    CameraEntityFeature.ON_OFF,
     Camera,
 )
 from homeassistant.const import (
