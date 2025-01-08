@@ -21,8 +21,8 @@ from homeassistant.components.ffmpeg.camera import (
 from homeassistant.components.camera import (
     DEFAULT_CONTENT_TYPE,
     PLATFORM_SCHEMA,
-    SUPPORT_STREAM,
-    SUPPORT_ON_OFF,
+    CameraEntityFeature.STREAM,
+    CameraEntityFeature.ON_OFF,
     Camera,
 )
 from homeassistant.const import (
@@ -94,7 +94,7 @@ class FreeboxCamera(FreeboxBaseClass, FFmpegCamera):
 
         FFmpegCamera.__init__(self, hass, device_info)
         
-        self._supported_features = SUPPORT_STREAM
+        self._supported_features = CameraEntityFeature.STREAM
         self.update_parameters(node)
         
         self._command_flip              = self.get_command_id(node['show_endpoints'], "slot", "flip")
