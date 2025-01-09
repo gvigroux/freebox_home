@@ -35,19 +35,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     api = await get_api(hass, entry.data[CONF_HOST])
     router = None
     try:
-        #await api.open(entry.data[CONF_HOST], entry.data[CONF_PORT])
-        await hass.async_add_executor_job(blocking_calls, hass, api, entry)
+        await api.open(entry.data[CONF_HOST], entry.data[CONF_PORT])
+        #await hass.async_add_executor_job(blocking_calls, hass, api, entry)
     except HttpRequestError as err:
         raise ConfigEntryNotReady from err
 
-    #fbx_config = await api.system.get_config()
-    #router = FreeboxRouter(hass, entry, api, fbx_config)
-    #await router.update_all()
+    fbx_config = await api.system.get_config()
+    router = FreeboxRouter(hass, entry, api, fbx_config)
+    await router.update_all()
 
-    #hass.data.setdefault(DOMAIN, {})
-    #hass.data[DOMAIN][entry.unique_id] = router
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][entry.unique_id] = router
 
-    #await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     async def async_close_connection(event):
         """Close Freebox connection on HA Stop."""
