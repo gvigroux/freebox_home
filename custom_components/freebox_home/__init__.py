@@ -9,25 +9,45 @@ from homeassistant.helpers import config_validation as cv, discovery
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN, PLATFORMS
-from .router import FreeboxRouter
+from .router import (FreeboxRouter, get_api)
 
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup(hass, config):
     return True
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up Freebox component."""
-    router = FreeboxRouter(hass, entry)
-    await router.setup()
+
+async def blocking_calls(hass, api, entry):
+    await api.open(entry.data[CONF_HOST], entry.data[CONF_PORT])
+
+    fbx_config = await api.system.get_config()
+    router = FreeboxRouter(hass, entry, api, fbx_config)
+    await router.update_all()
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.unique_id] = router
-
-    #for platform in PLATFORMS:
-    #    hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, platform))
-
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Set up Freebox component."""
+
+    api = await get_api(hass, entry.data[CONF_HOST])
+    router = None
+    try:
+        #await api.open(entry.data[CONF_HOST], entry.data[CONF_PORT])
+        router = await hass.async_add_executor_job(blocking_calls, hass, api, entry)
+    except HttpRequestError as err:
+        raise ConfigEntryNotReady from err
+
+    #fbx_config = await api.system.get_config()
+    #router = FreeboxRouter(hass, entry, api, fbx_config)
+    #await router.update_all()
+
+    #hass.data.setdefault(DOMAIN, {})
+    #hass.data[DOMAIN][entry.unique_id] = router
+
+    #await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     async def async_close_connection(event):
         """Close Freebox connection on HA Stop."""

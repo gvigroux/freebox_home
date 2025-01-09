@@ -22,35 +22,44 @@ SCAN_INTERVAL = timedelta(seconds=30)
 class FreeboxRouter:
     """Representation of a Freebox router."""
 
-    def __init__(self, hass, entry) -> None:
+    def __init__(self, hass, entry, api, fbx_config) -> None:
         """Initialize a Freebox router."""
         self.hass = hass
         self._host = entry.data[CONF_HOST]
         self._port = entry.data[CONF_PORT]
-        self._api: Freepybox = None
+        self._api = api
         self.mac = None
 
         self.nodes: Dict[str, Any] = {}
-        self._unsub_dispatcher = None
-
-    async def setup(self) -> None:
-        """Set up a Freebox router."""
-        self._api = await get_api(self.hass, self._host)
-
-        try:
-            await self._api.open(self._host, self._port)
-            #result = await self.hass.async_add_executor_job(self._api.open(self._host, self._port), "open")
-        except HttpRequestError:
-            _LOGGER.exception("Failed to connect to Freebox")
-            return ConfigEntryNotReady
-
+        #self._unsub_dispatcher = None
+        
         # System
-        fbx_config = await self._api.system.get_config()
         self.mac   = "FbxHome_" + fbx_config["mac"]
 
         # Devices & sensors
-        await self.update_all()
         self._unsub_dispatcher = async_track_time_interval(self.hass, self.update_all, SCAN_INTERVAL)
+
+
+
+    #async def setup(self) -> None:
+        #"""Set up a Freebox router."""
+        #self._api = await get_api(self.hass, self._host)
+
+        #await self.hass.async_add_executor_job(self.blocking_code)
+        #try:
+        #    #await self._api.open(self._host, self._port)
+        #    result = await self.hass.async_add_executor_job(self._api.open,self._host, self._port)
+        #except HttpRequestError:
+        #    _LOGGER.exception("Failed to connect to Freebox")
+        #    return ConfigEntryNotReady
+
+        # System
+        #fbx_config = await self._api.system.get_config()
+        #self.mac   = "FbxHome_" + fbx_config["mac"]
+
+        # Devices & sensors
+        #await self.update_all()
+        #self._unsub_dispatcher = async_track_time_interval(self.hass, self.update_all, SCAN_INTERVAL)
 
     async def update_all(self, now: Optional[datetime] = None) -> None:
         """Update all nodes"""

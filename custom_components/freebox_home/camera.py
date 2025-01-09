@@ -102,7 +102,7 @@ class FreeboxCamera(FreeboxBaseClass, FFmpegCamera):
         device_info = {CONF_NAME: node["label"].strip(),CONF_INPUT: node["props"]["Stream"],CONF_EXTRA_ARGUMENTS: DEFAULT_ARGUMENTS }
         FFmpegCamera.__init__(self, hass, device_info)
         
-        self._supported_features = CameraEntityFeature.STREAM
+        #self._supported_features = CameraEntityFeature.STREAM
         self.update_parameters(node)
         
         self._command_flip              = self.get_command_id(node['show_endpoints'], "slot", "flip")
@@ -148,7 +148,7 @@ class FreeboxCamera(FreeboxBaseClass, FFmpegCamera):
     @property
     def supported_features(self):
         """Flag supported features."""
-        return self._supported_features
+        return CameraEntityFeature.STREAM #self._supported_features
 
     async def async_update(self):
         """Get the state & name and update it."""
