@@ -4,10 +4,10 @@
   "config_flow": true,
   "documentation": "https://github.com/gvigroux/freebox_home",
   "issue_tracker": "https://github.com/gvigroux/freebox_home/issues",
-  "requirements": ["freebox-api==1.2.0"],
+  "requirements": ["freebox-api==1.2.2"],
   "dependencies": ["ffmpeg"],
   "after_dependencies": ["zeroconf"],
   "zeroconf": ["_fbx-api._tcp.local."],
   "codeowners": ["gvigroux"],
-  "version": "0.7.1"
+  "version": "0.7.3"
 }
