@@ -55,14 +55,15 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
         self._command_timeout3  = self.get_command_id(node['type']['endpoints'], "slot", "timeout3") # Durée de la sirène
         self._command_state     = self.get_command_id(node['type']['endpoints'], "signal", "state" )
 
-        self.set_state("idle")
+        #self.set_state("idle")
+        self._freebox_alarm_state = "idle"
         self._unsub_watcher = None
         self._supported_features = AlarmControlPanelEntityFeature.ARM_AWAY
         self.update_parameters(node)
 
-    @property
-    def state(self) -> str:
-        return self._state
+    #@property
+    #def state(self) -> str:
+    #    return self._state
 
     @property
     def supported_features(self) -> int:
@@ -90,18 +91,17 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
             time.sleep(1)
             self._unsub_watcher = async_track_time_interval(self.hass, self.sync_update_during_arming, timedelta(seconds=1))
 
-
     async def sync_update_during_arming(self, now: Optional[datetime] = None) -> None:
-        self.set_state(await self.get_home_endpoint_value( self._command_state))
+        #self.set_state(await self.get_home_endpoint_value( self._command_state))
+        self._freebox_alarm_state = await self.get_home_endpoint_value( self._command_state)
         self.async_write_ha_state()
 
     async def async_update(self):
         """Get the state & name and update it."""
-        state = await self.get_home_endpoint_value( self._command_state)
-        if( state == "idle" and self._unsub_watcher != None):
+        self._freebox_alarm_state = await self.get_home_endpoint_value( self._command_state)
+        if( self._freebox_alarm_state == "idle" and self._unsub_watcher != None):
             self._unsub_watcher()
         self.update_parameters(self._router.nodes[self._id])
-
 
     def update_parameters(self, node):
         #Update name
@@ -120,7 +120,6 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
         else:
             self._supported_features = AlarmControlPanelEntityFeature.ARM_AWAY
 
-
         # Parse all endpoints values
         for endpoint in filter(lambda x:(x["ep_type"] == "signal"), node['show_endpoints']):
             if( endpoint["name"] == "pin" ):
@@ -138,21 +137,42 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
             elif( endpoint["name"] == "battery" ):
                 self._battery = endpoint["value"]
 
-    def set_state(self, state):
-        if( state == "alarm1_arming"):
-            self._state = AlarmControlPanelState.ARMING
-        elif( state == "alarm2_arming"):
-            self._state = SAlarmControlPanelState.ARMING
-        elif( state == "alarm1_armed"):
-            self._state = AlarmControlPanelState.ARMED_AWAY
-        elif( state == "alarm2_armed"):
-            self._state = AlarmControlPanelState.ARMED_NIGHT
-        elif( state == "alarm1_alert_timer"):
-            self._state = AlarmControlPanelState.TRIGGERED
-        elif( state == "alarm2_alert_timer"):
-            self._state = AlarmControlPanelState.TRIGGERED
-        elif( state == "alert"):
-            self._state = AlarmControlPanelState.TRIGGERED
-        else:
-            self._state = AlarmControlPanelState.DISARMED
+#    def set_state(self, state):
+#        if( state == "alarm1_arming"):
+#            self._state = AlarmControlPanelState.ARMING
+#        elif( state == "alarm2_arming"):
+#            self._state = SAlarmControlPanelState.ARMING
+#        elif( state == "alarm1_armed"):
+#            self._state = AlarmControlPanelState.ARMED_AWAY
+#        elif( state == "alarm2_armed"):
+#            self._state = AlarmControlPanelState.ARMED_NIGHT
+#        elif( state == "alarm1_alert_timer"):
+#            self._state = AlarmControlPanelState.TRIGGERED
+#        elif( state == "alarm2_alert_timer"):
+#            self._state = AlarmControlPanelState.TRIGGERED
+#        elif( state == "alert"):
+#            self._state = AlarmControlPanelState.TRIGGERED
+#        else:
+#            self._state = AlarmControlPanelState.DISARMED
+
+
+    @property
+    def alarm_state(self) -> AlarmControlPanelState | None:
+        """Return the state of the alarm."""
+        
+        if( self._freebox_alarm_state == "alarm1_arming"):
+            return AlarmControlPanelState.ARMING
+        elif( self._freebox_alarm_state == "alarm2_arming"):
+            return SAlarmControlPanelState.ARMING
+        elif( self._freebox_alarm_state == "alarm1_armed"):
+            return AlarmControlPanelState.ARMED_AWAY
+        elif( self._freebox_alarm_state == "alarm2_armed"):
+            return AlarmControlPanelState.ARMED_NIGHT
+        elif( self._freebox_alarm_state == "alarm1_alert_timer"):
+            return AlarmControlPanelState.TRIGGERED
+        elif( self._freebox_alarm_state == "alarm2_alert_timer"):
+            returnAlarmControlPanelState.TRIGGERED
+        elif( self._freebox_alarm_state == "alert"):
+            return AlarmControlPanelState.TRIGGERED
+        return AlarmControlPanelState.DISARMED
 

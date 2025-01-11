@@ -1,6 +1,7 @@
 """Represent the Freebox router and its devices and sensors."""
 from datetime import datetime, timedelta
 import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -79,11 +80,30 @@ class FreeboxRouter:
         self._api = None
 
 
+#async def get_api(hass, host: str) -> Freepybox:
+#    """Get the Freebox API."""
+#    #freebox_path = Path(hass.helpers.storage.Store(STORAGE_VERSION, STORAGE_KEY).path)
+#    freebox_path = Path(Store(hass, STORAGE_VERSION, STORAGE_KEY).path)
+#    freebox_path.mkdir(exist_ok=True)
+#
+#    token_file = Path(f"{freebox_path}/{slugify(host)}.conf")
+#    return Freepybox(APP_DESC, token_file, API_VERSION)
+
+
 async def get_api(hass, host: str) -> Freepybox:
     """Get the Freebox API."""
-    #freebox_path = Path(hass.helpers.storage.Store(STORAGE_VERSION, STORAGE_KEY).path)
-    freebox_path = Path(Store(hass, STORAGE_VERSION, STORAGE_KEY).path)
-    freebox_path.mkdir(exist_ok=True)
+    freebox_path = Store(hass, STORAGE_VERSION, STORAGE_KEY).path
+
+    if not os.path.exists(freebox_path):
+        await hass.async_add_executor_job(os.makedirs, freebox_path)
 
     token_file = Path(f"{freebox_path}/{slugify(host)}.conf")
-    return Freepybox(APP_DESC, token_file, API_VERSION)
+
+    return Freepybox(APP_DESC, token_file, api_version="latest")
+
+
+async def remove_config(hass, host: str):
+    freebox_path = Store(hass, STORAGE_VERSION, STORAGE_KEY).path
+    token_file = Path(f"{freebox_path}/{slugify(host)}.conf")
+    os.remove(token_file)
+

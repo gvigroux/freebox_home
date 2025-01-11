@@ -71,5 +71,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     if unload_ok:
         router = hass.data[DOMAIN].pop(entry.unique_id)
         await router.close()
+        await router.remove_config(hass, entry.data[CONF_HOST])
 
     return unload_ok

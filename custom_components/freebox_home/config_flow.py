@@ -9,7 +9,7 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.data_entry_flow import AbortFlow
 
 from .const import DOMAIN
-from .router import get_api
+from .router import get_api, remove_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,7 +90,10 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             '''
 
         except AuthorizationError as error:
-            _LOGGER.error(error)
+            # Config file may be wrong, I will delete IT.
+            _LOGGER.error("AuthorizationError: %s", error)
+            await remove_config(self.hass, self._host)
+            _LOGGER.error("The current configuration file is invalid. It has been deleted. Please retry")
             errors["base"] = "register_failed"
 
         except HttpRequestError:
