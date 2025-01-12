@@ -9,7 +9,7 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.data_entry_flow import AbortFlow
 
 from .const import DOMAIN
-from .router import get_api, remove_config
+from .router import get_api
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,13 +68,12 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_show_form(step_id="link")
 
         errors = {}
-        fbx = await get_api(self.hass, self._host)
         
         try:
-            # Open connection and check authentication
-            await fbx.open(self._host, self._port)
+            # Open connection, check authentication and permissions
+            fbx = await get_api(self.hass, self._host, self._port)
             
-            # Check permissions
+            # Wait
             await fbx.system.get_config()
             await self.hass.async_block_till_done()
 
@@ -92,8 +91,8 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         except AuthorizationError as error:
             # Config file may be wrong, I will delete IT.
             _LOGGER.error("AuthorizationError: %s", error)
-            await remove_config(self.hass, self._host)
-            _LOGGER.error("The current configuration file is invalid. It has been deleted. Please retry")
+            #await remove_config(self.hass, self._host)
+            #_LOGGER.error("The current configuration file is invalid. It has been deleted. Please retry")
             errors["base"] = "register_failed"
 
         except HttpRequestError:
@@ -110,11 +109,9 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     # Ask for HOME permission
     async def async_step_permission(self, user_input=None):
         errors = {}
-        fbx = await get_api(self.hass, self._host)
         try:
-            await fbx.open(self._host, self._port)
+            fbx = await get_api(self.hass, self._host, self._port)
             await fbx.home.get_home_nodes()
-            await fbx.close()
 
             return self.async_create_entry(
                 title=self._host,
@@ -128,8 +125,9 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         except Exception:
             _LOGGER.exception("Unknown error connecting with Freebox router at %s", self._host)
             errors["base"] = "unknown"
-        
-        await fbx.close()
+        finally: 
+            await fbx.close()
+
         return self.async_show_form(step_id="permission", errors=errors)
 
 

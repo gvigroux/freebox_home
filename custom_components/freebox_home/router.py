@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from freebox_api import Freepybox
-from freebox_api.exceptions import HttpRequestError
+from freebox_api.exceptions import AuthorizationError, HttpRequestError, InsufficientPermissionsError
 
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -29,10 +29,8 @@ class FreeboxRouter:
         self._host = entry.data[CONF_HOST]
         self._port = entry.data[CONF_PORT]
         self._api = api
-        self.mac = None
 
         self.nodes: Dict[str, Any] = {}
-        #self._unsub_dispatcher = None
         
         # System
         self.mac   = "FbxHome_" + fbx_config["mac"]
@@ -64,7 +62,12 @@ class FreeboxRouter:
 
     async def update_all(self, now: Optional[datetime] = None) -> None:
         """Update all nodes"""
-        fbx_nodes: Dict[str, Any] = await self._api.home.get_home_nodes()
+        try:
+            fbx_nodes: Dict[str, Any] = await self._api.home.get_home_nodes()
+        except InsufficientPermissionsError as error:
+            _LOGGER.error("InsufficientPermissionsError: You need to browse http://mafreebox.freebox.fr/#Fbx.os.app.settings.Accounts and grant the access policy: \"Gestion de l'alarme et maison connectée\"")
+            return
+
         for fbx_node in fbx_nodes:
             if( fbx_node["category"] not in ["pir","camera","alarm","dws","kfb","basic_shutter","shutter"] ):
                 _LOGGER.warning("Node not supported: \n" +str(fbx_node))
@@ -80,17 +83,7 @@ class FreeboxRouter:
         self._api = None
 
 
-#async def get_api(hass, host: str) -> Freepybox:
-#    """Get the Freebox API."""
-#    #freebox_path = Path(hass.helpers.storage.Store(STORAGE_VERSION, STORAGE_KEY).path)
-#    freebox_path = Path(Store(hass, STORAGE_VERSION, STORAGE_KEY).path)
-#    freebox_path.mkdir(exist_ok=True)
-#
-#    token_file = Path(f"{freebox_path}/{slugify(host)}.conf")
-#    return Freepybox(APP_DESC, token_file, API_VERSION)
-
-
-async def get_api(hass, host: str) -> Freepybox:
+async def get_api(hass, host: str, port, retry = 0):
     """Get the Freebox API."""
     freebox_path = Store(hass, STORAGE_VERSION, STORAGE_KEY).path
 
@@ -98,8 +91,22 @@ async def get_api(hass, host: str) -> Freepybox:
         await hass.async_add_executor_job(os.makedirs, freebox_path)
 
     token_file = Path(f"{freebox_path}/{slugify(host)}.conf")
+    api = Freepybox(APP_DESC, token_file, api_version="latest")
 
-    return Freepybox(APP_DESC, token_file, api_version="latest")
+    try:
+        await api.open(host, port)
+        await api.system.get_config()
+    except AuthorizationError as error:
+        _LOGGER.error("AuthorizationError: Please accept the application authorization on your Freebox screen")
+        if( retry != 0 ):
+            raise error
+        await remove_config(hass, host)
+        return await get_api(hass, host, port, 1)
+    except InsufficientPermissionsError as error:
+        _LOGGER.error("InsufficientPermissionsError: You need to browse http://mafreebox.freebox.fr/#Fbx.os.app.settings.Accounts and grant the access policy: \"Gestion de l'alarme et maison connectée\"")
+        raise error
+
+    return api
 
 
 async def remove_config(hass, host: str):

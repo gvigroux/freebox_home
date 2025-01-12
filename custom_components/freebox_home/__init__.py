@@ -8,8 +8,10 @@ from homeassistant.const import CONF_HOST, CONF_PORT, EVENT_HOMEASSISTANT_STOP
 from homeassistant.helpers import config_validation as cv, discovery
 from homeassistant.core import HomeAssistant
 
+from freebox_api.exceptions import AuthorizationError, HttpRequestError
+
 from .const import DOMAIN, PLATFORMS
-from .router import (FreeboxRouter, get_api)
+from .router import (FreeboxRouter, get_api, remove_config)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,19 +30,21 @@ async def blocking_calls(hass, api, entry):
     hass.data[DOMAIN][entry.unique_id] = router
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+async def test(hass, api, entry):
+    await api.open(entry.data[CONF_HOST], entry.data[CONF_PORT])
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Freebox component."""
 
-    api = await get_api(hass, entry.data[CONF_HOST])
     router = None
     try:
-        await api.open(entry.data[CONF_HOST], entry.data[CONF_PORT])
+        api = await get_api(hass, entry.data[CONF_HOST], entry.data[CONF_PORT])
+        fbx_config = await api.system.get_config()
         #await hass.async_add_executor_job(blocking_calls, hass, api, entry)
-    except HttpRequestError as err:
-        raise ConfigEntryNotReady from err
+    except:
+        _LOGGER.error("Unable to connect to the Freebox")
 
-    fbx_config = await api.system.get_config()
     router = FreeboxRouter(hass, entry, api, fbx_config)
     await router.update_all()
 
@@ -70,7 +74,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     )
     if unload_ok:
         router = hass.data[DOMAIN].pop(entry.unique_id)
+        # No need to remove the old file because I will clean when we recreate the entry again (and no need to get a new credential if it's working)
+        #await remove_config(hass, entry.data[CONF_HOST])
         await router.close()
-        await router.remove_config(hass, entry.data[CONF_HOST])
 
     return unload_ok
