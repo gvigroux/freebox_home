@@ -39,27 +39,6 @@ class FreeboxRouter:
         self._unsub_dispatcher = async_track_time_interval(self.hass, self.update_all, SCAN_INTERVAL)
 
 
-
-    #async def setup(self) -> None:
-        #"""Set up a Freebox router."""
-        #self._api = await get_api(self.hass, self._host)
-
-        #await self.hass.async_add_executor_job(self.blocking_code)
-        #try:
-        #    #await self._api.open(self._host, self._port)
-        #    result = await self.hass.async_add_executor_job(self._api.open,self._host, self._port)
-        #except HttpRequestError:
-        #    _LOGGER.exception("Failed to connect to Freebox")
-        #    return ConfigEntryNotReady
-
-        # System
-        #fbx_config = await self._api.system.get_config()
-        #self.mac   = "FbxHome_" + fbx_config["mac"]
-
-        # Devices & sensors
-        #await self.update_all()
-        #self._unsub_dispatcher = async_track_time_interval(self.hass, self.update_all, SCAN_INTERVAL)
-
     async def update_all(self, now: Optional[datetime] = None) -> None:
         """Update all nodes"""
         try:
@@ -69,7 +48,7 @@ class FreeboxRouter:
             return
 
         for fbx_node in fbx_nodes:
-            if( fbx_node["category"] not in ["pir","camera","alarm","dws","kfb","basic_shutter","shutter"] ):
+            if( fbx_node["category"] not in ["pir","camera","alarm","dws","kfb","basic_shutter","shutter","opener"] ):
                 _LOGGER.warning("Node not supported: \n" +str(fbx_node))
                 continue
             self.nodes[fbx_node["id"]] = fbx_node

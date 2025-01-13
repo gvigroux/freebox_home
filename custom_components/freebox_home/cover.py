@@ -26,6 +26,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
             entities.append(FreeboxBasicShutter(hass, router, node))
         elif node["category"]=="shutter":
             entities.append(FreeboxShutter(hass, router, node))
+        elif node["category"]=="opener":
+            entities.append(FreeboxShutter(hass, router, node))
 
     async_add_entities(entities, True)
 
@@ -104,6 +106,7 @@ class FreeboxShutter(FreeboxBaseClass,CoverEntity):
         self._command_toggle = self.get_command_id(node['show_endpoints'], "slot", "toggle")
         self._command_state = self.get_command_id(node['type']['endpoints'], "signal", "position_set")
         self._state         = self.get_node_value(node['show_endpoints'], "signal", "state")
+        self._attr_device_class = CoverDeviceClass.SHUTTER
 
     @property
     def device_class(self) -> str:

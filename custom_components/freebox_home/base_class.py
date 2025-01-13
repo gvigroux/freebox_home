@@ -43,6 +43,9 @@ class FreeboxBaseClass(Entity):
         elif( node["type"].get("inherit", None)=="node::rts"):
             self._manufacturer  = "Somfy"
             self._model         = "RTS"
+        elif( node["type"].get("inherit", None)=="node::ios"):
+            self._manufacturer  = "Somfy"
+            self._model         = "IOcontrol"
 
     @property
     def unique_id(self) -> str:
