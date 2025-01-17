@@ -4,7 +4,7 @@ import socket
 DOMAIN      = "freebox_home"
 API_VERSION = "v8"
 
-PLATFORMS = ["cover", "camera", "alarm_control_panel", "binary_sensor", "sensor"]
+PLATFORMS = ["switch", "cover", "camera", "alarm_control_panel", "binary_sensor", "sensor", ]
 
 APP_DESC = {
     "app_id": "hass",

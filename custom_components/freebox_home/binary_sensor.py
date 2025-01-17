@@ -22,12 +22,21 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             entities.append(FreeboxPir(hass, router, node))
         elif node["category"]=="dws":
             entities.append(FreeboxDws(hass, router, node))
+        #elif node["category"]=="basic_shutter":
+        #    entities.append(FreeboxCoverInverter(hass, router, node))
+        #elif node["category"]=="shutter":
+        #    entities.append(FreeboxCoverInverter(hass, router, node))
+        #elif node["category"]=="opener":
+        #    entities.append(FreeboxCoverInverter(hass, router, node))
+        
 
         cover_node = next(filter(lambda x: (x["name"]=="cover" and x["ep_type"]=="signal"), node["show_endpoints"]), None)
         if( cover_node != None and cover_node.get("value", None) != None):
             entities.append(FreeboxSensorCover(hass, router, node))
 
     async_add_entities(entities, True)
+
+
 
 
 ''' Freebox motion detector sensor '''

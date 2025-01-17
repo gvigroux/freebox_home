@@ -26,5 +26,12 @@
             "register_failed": "Failed to register, please try again",
             "unknown": "Unexpected error"
         }
+    },
+    "entity": {
+        "switch": {
+            "invert_switch": {
+                "name": "EN Mon Interrupteur Personnalisé"
+            }
+        }
     }
 }

@@ -2,6 +2,8 @@
 from datetime import datetime, timedelta
 import logging
 import os
+import asyncio
+import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -43,6 +45,8 @@ class FreeboxRouter:
         """Update all nodes"""
         try:
             fbx_nodes: Dict[str, Any] = await self._api.home.get_home_nodes()
+
+
         except InsufficientPermissionsError as error:
             _LOGGER.error("InsufficientPermissionsError: You need to browse http://mafreebox.freebox.fr/#Fbx.os.app.settings.Accounts and grant the access policy: \"Gestion de l'alarme et maison connectée\"")
             return
@@ -53,6 +57,8 @@ class FreeboxRouter:
                 continue
             self.nodes[fbx_node["id"]] = fbx_node
 
+        #fbx_node = json.loads('{"adapter":0,"area":29,"category":"shutter","group":{"label":"Chambre"},"id":25,"label":"Volet Chambre","name":"node_25","props":{"Address":5187680,"ArcId":9},"show_endpoints":[{"category":"","ep_type":"slot","id":0,"label":"Consigne d\'ouverture","name":"position_set","ui":{"access":"w","display":"slider","icon_url":"/resources/images/home/pictos/volet_3.png","range":[0,100],"unit":"%"},"value":0,"value_type":"int","visibility":"normal"},{"category":"","ep_type":"slot","id":1,"label":"Stop","name":"stop","ui":{"access":"w","display":"button"},"value":null,"value_type":"void","visibility":"normal"},{"category":"","ep_type":"slot","id":2,"label":"Toggle","name":"toggle","ui":{"access":"w","display":"button"},"value":null,"value_type":"void","visibility":"normal"},{"category":"","ep_type":"signal","id":4,"label":"Consigne d\'ouverture","name":"position_set","refresh":2000,"ui":{"access":"r","display":"slider","icon_url":"/resources/images/home/pictos/volet_3.png","range":[0,100],"unit":"%"},"value":0,"value_type":"int","visibility":"normal"},{"category":"","ep_type":"signal","id":5,"label":"État","name":"state","refresh":2000,"ui":{"access":"r","display":"text"},"value":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx","value_type":"string","visibility":"normal"}],"signal_links":[],"slot_links":[],"status":"active","type":{"abstract":false,"endpoints":[{"ep_type":"slot","id":0,"label":"Consigne d\'ouverture","name":"position_set","value_type":"int","visiblity":"normal"},{"ep_type":"slot","id":1,"label":"Stop","name":"stop","value_type":"void","visiblity":"normal"},{"ep_type":"slot","id":2,"label":"Toggle","name":"toggle","value_type":"void","visiblity":"normal"},{"ep_type":"slot","id":3,"label":"Consigne d\'ouverture","name":"position","value_type":"int","visiblity":"normal"},{"ep_type":"signal","id":4,"label":"Consigne d\'ouverture","name":"position_set","param_type":"void","value_type":"int","visiblity":"normal"},{"ep_type":"signal","id":5,"label":"État","name":"state","param_type":"void","value_type":"string","visiblity":"normal"}],"generic":false,"icon":"/resources/images/home/pictos/volet_3.png","inherit":"node::ios","label":"Volet roulant","name":"node::ios::2","params":{},"physical":true}}')
+        #self.nodes[fbx_node["id"]] = fbx_node
 
     async def close(self) -> None:
         """Close the connection."""
@@ -62,18 +68,36 @@ class FreeboxRouter:
         self._api = None
 
 
-async def get_api(hass, host: str, port, retry = 0):
-    """Get the Freebox API."""
-    freebox_path = Store(hass, STORAGE_VERSION, STORAGE_KEY).path
 
+
+async def async_get_path(hass, name):
+    freebox_path = Store(hass, STORAGE_VERSION, STORAGE_KEY).path
     if not os.path.exists(freebox_path):
         await hass.async_add_executor_job(os.makedirs, freebox_path)
+    return Path(f"{freebox_path}/{slugify(name)}.conf")
 
-    token_file = Path(f"{freebox_path}/{slugify(host)}.conf")
-    api = Freepybox(APP_DESC, token_file, api_version="latest")
+def get_path(hass, name):
+    freebox_path = Store(hass, STORAGE_VERSION, STORAGE_KEY).path
+    return Path(f"{freebox_path}/{slugify(name)}.conf")
 
+
+async def get_api(hass, host: str, port, retry = 0):
+    """Get the Freebox API."""
+
+    path = await async_get_path(hass, host)
+    api = Freepybox(APP_DESC, path, api_version="latest")
+    
     try:
-        await api.open(host, port)
+        await api.open(host, port) 
+        #loop = asyncio.get_running_loop()
+        #await loop.run_in_executor(None, async_func_wrapper, api, host, port)
+        
+        #loop = asyncio.new_event_loop()
+        #fetches = [api.open(host, port)]
+        #results = await asyncio.gather(*fetches)
+        #res = await asyncio.create_task(api.open(host, port))
+        #result = await hass.async_add_executor_job(async_func_wrapper, api, host, port)
+        
         await api.system.get_config()
     except AuthorizationError as error:
         _LOGGER.error("AuthorizationError: Please accept the application authorization on your Freebox screen")
