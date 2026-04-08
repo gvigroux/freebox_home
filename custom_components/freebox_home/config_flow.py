@@ -16,7 +16,6 @@ _LOGGER = logging.getLogger(__name__)
 class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow."""
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
 
     def __init__(self):
         """Initialize Freebox config flow."""
@@ -106,6 +105,7 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     # Ask for HOME permission
     async def async_step_permission(self, user_input=None):
         errors = {}
+        fbx = None
         try:
             fbx = await get_api(self.hass, self._host, self._port)
             await fbx.home.get_home_nodes()
@@ -122,8 +122,9 @@ class FreeboxFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         except Exception:
             _LOGGER.exception("Unknown error connecting with Freebox router at %s", self._host)
             errors["base"] = "unknown"
-        finally: 
-            await fbx.close()
+        finally:
+            if fbx is not None:
+                await fbx.close()
 
         return self.async_show_form(step_id="permission", errors=errors)
 

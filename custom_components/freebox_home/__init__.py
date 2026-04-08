@@ -1,11 +1,8 @@
 """Support for Freebox devices (Freebox v6 and Freebox mini 4K)."""
-import asyncio
 import logging
-import voluptuous as vol
 
-from homeassistant.config_entries import SOURCE_DISCOVERY, ConfigEntry
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT, EVENT_HOMEASSISTANT_STOP
-from homeassistant.helpers import config_validation as cv, discovery
 from homeassistant.core import HomeAssistant
 
 from freebox_api.exceptions import AuthorizationError, HttpRequestError
@@ -49,18 +46,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
-    unload_ok = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(entry, platform)
-                for platform in PLATFORMS
-            ]
-        )
-    )
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         router = hass.data[DOMAIN].pop(entry.unique_id)
-        # No need to remove the old file because I will clean when we recreate the entry again (and no need to get a new credential if it's working)
-        #await remove_config(hass, entry.data[CONF_HOST])
         await router.close()
 
     return unload_ok

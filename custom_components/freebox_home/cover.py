@@ -1,9 +1,5 @@
 """Support for Freebox covers."""
 import logging
-import json
-from homeassistant.util import slugify
-from homeassistant.core import callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.components.cover import CoverEntity, CoverDeviceClass
 from .const import DOMAIN, DUMMY, VALUE_NOT_SET
 from .base_class import FreeboxBaseClass
@@ -11,9 +7,7 @@ from homeassistant.helpers.entity_registry import async_get
 
 from homeassistant.const import (
     STATE_CLOSED,
-    STATE_CLOSING,
     STATE_OPEN,
-    STATE_OPENING,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -162,8 +156,9 @@ class FreeboxShutter(FreeboxBaseClass,CoverEntity):
             return True
         return False
 
-    async def async_set_cover_position(self, position, **kwargs):
+    async def async_set_cover_position(self, **kwargs):
         """Set cover position."""
+        position = kwargs.get("position")
         await self.set_home_endpoint_value(self._command_position, {"value": self.get_corrected_state(position)})
         self._current_state = position
 

@@ -1,14 +1,10 @@
 """Support for Freebox alarm"""
 import logging
-import json
-import time
-import async_timeout
+import asyncio
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_time_interval
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
 from datetime import datetime, timedelta
 
@@ -38,7 +34,7 @@ async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities):
 
 class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
 
-    def __init__(self, hass, router: FreeboxRouter, node: Dict[str, any]) -> None:
+    def __init__(self, hass, router: FreeboxRouter, node: Dict[str, Any]) -> None:
         """Initialize an Alarm"""
         super().__init__(hass, router, node)
 
@@ -55,7 +51,6 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
         self._command_timeout3  = self.get_command_id(node['type']['endpoints'], "slot", "timeout3") # Durée de la sirène
         self._command_state     = self.get_command_id(node['type']['endpoints'], "signal", "state" )
 
-        #self.set_state("idle")
         self._freebox_alarm_state = "idle"
         self._unsub_watcher = None
         self._supported_features = AlarmControlPanelEntityFeature.ARM_AWAY
@@ -73,13 +68,13 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
     async def async_alarm_disarm(self, code=None) -> None:
         """Send disarm command."""
         if( await self.set_home_endpoint_value(self._command_off, {"value": None})):
-            time.sleep(1)
+            await asyncio.sleep(1)
             self.schedule_update_ha_state(True)
 
     async def async_alarm_arm_away(self, code=None) -> None:
         """Send arm away command."""
         if( await self.set_home_endpoint_value(self._command_alarm1, {"value": None})):
-            time.sleep(1)
+            await asyncio.sleep(1)
             self._unsub_watcher = async_track_time_interval(self.hass, self.sync_update_during_arming, timedelta(seconds=1))
 
     async def async_alarm_arm_home(self, code=None) -> None:
@@ -88,7 +83,7 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
     async def async_alarm_arm_night(self, code=None) -> None:
         """Send arm night command."""
         if( await self.set_home_endpoint_value(self._command_alarm2, {"value": None})):
-            time.sleep(1)
+            await asyncio.sleep(1)
             self._unsub_watcher = async_track_time_interval(self.hass, self.sync_update_during_arming, timedelta(seconds=1))
 
     async def sync_update_during_arming(self, now: Optional[datetime] = None) -> None:
@@ -122,38 +117,18 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
 
         # Parse all endpoints values
         for endpoint in filter(lambda x:(x["ep_type"] == "signal"), node['show_endpoints']):
-            if( endpoint["name"] == "pin" ):
-                self._pin = endpoint["value"]
-            elif( endpoint["name"] == "sound" ):
+            if( endpoint["name"] == "sound" ):
                 self._sound = endpoint["value"]
             elif( endpoint["name"] == "volume" ):
                 self._high_volume = endpoint["value"]
             elif( endpoint["name"] == "timeout1" ):
                 self._timeout1 = endpoint["value"]
-            elif( endpoint["name"] == "timeout3" ):
+            elif( endpoint["name"] == "timeout2" ):
                 self._timeout2 = endpoint["value"]
             elif( endpoint["name"] == "timeout3" ):
                 self._timeout3 = endpoint["value"]
             elif( endpoint["name"] == "battery" ):
                 self._battery = endpoint["value"]
-
-#    def set_state(self, state):
-#        if( state == "alarm1_arming"):
-#            self._state = AlarmControlPanelState.ARMING
-#        elif( state == "alarm2_arming"):
-#            self._state = SAlarmControlPanelState.ARMING
-#        elif( state == "alarm1_armed"):
-#            self._state = AlarmControlPanelState.ARMED_AWAY
-#        elif( state == "alarm2_armed"):
-#            self._state = AlarmControlPanelState.ARMED_NIGHT
-#        elif( state == "alarm1_alert_timer"):
-#            self._state = AlarmControlPanelState.TRIGGERED
-#        elif( state == "alarm2_alert_timer"):
-#            self._state = AlarmControlPanelState.TRIGGERED
-#        elif( state == "alert"):
-#            self._state = AlarmControlPanelState.TRIGGERED
-#        else:
-#            self._state = AlarmControlPanelState.DISARMED
 
 
     @property
@@ -163,7 +138,7 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
         if( self._freebox_alarm_state == "alarm1_arming"):
             return AlarmControlPanelState.ARMING
         elif( self._freebox_alarm_state == "alarm2_arming"):
-            return SAlarmControlPanelState.ARMING
+            return AlarmControlPanelState.ARMING
         elif( self._freebox_alarm_state == "alarm1_armed"):
             return AlarmControlPanelState.ARMED_AWAY
         elif( self._freebox_alarm_state == "alarm2_armed"):
@@ -171,7 +146,7 @@ class FreeboxAlarm(FreeboxBaseClass, AlarmControlPanelEntity):
         elif( self._freebox_alarm_state == "alarm1_alert_timer"):
             return AlarmControlPanelState.TRIGGERED
         elif( self._freebox_alarm_state == "alarm2_alert_timer"):
-            returnAlarmControlPanelState.TRIGGERED
+            return AlarmControlPanelState.TRIGGERED
         elif( self._freebox_alarm_state == "alert"):
             return AlarmControlPanelState.TRIGGERED
         return AlarmControlPanelState.DISARMED

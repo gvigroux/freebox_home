@@ -1,6 +1,6 @@
 {
   "domain": "freebox_home",
-  "name": "Freebox Home",
+  "name": "Freebox Home Fork Sté",
   "after_dependencies": ["zeroconf"],
   "codeowners": ["@gvigroux"],
   "config_flow": true,

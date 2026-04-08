@@ -116,5 +116,12 @@ async def get_api(hass, host: str, port, retry = 0):
 async def remove_config(hass, host: str):
     freebox_path = Store(hass, STORAGE_VERSION, STORAGE_KEY).path
     token_file = Path(f"{freebox_path}/{slugify(host)}.conf")
-    os.remove(token_file)
+    try:
+        resolved = token_file.resolve()
+        if not str(resolved).startswith(str(Path(freebox_path).resolve())):
+            _LOGGER.error("Invalid token file path, aborting removal: %s", token_file)
+            return
+        os.remove(token_file)
+    except FileNotFoundError:
+        _LOGGER.warning("Token file not found, skipping removal: %s", token_file)
 

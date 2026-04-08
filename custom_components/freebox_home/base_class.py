@@ -1,16 +1,17 @@
 """Support for detectors covers."""
 import logging
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.device_registry import DeviceInfo
 from .const import DOMAIN, VALUE_NOT_SET, DUMMY
 from .router import FreeboxRouter
 
 _LOGGER = logging.getLogger(__name__)
 
 class FreeboxBaseClass(Entity):
-    def __init__(self, hass, router: FreeboxRouter, node: Dict[str, any], sub_node = None) -> None:
+    def __init__(self, hass, router: FreeboxRouter, node: Dict[str, Any], sub_node = None) -> None:
         _LOGGER.debug(node)
         self._hass = hass
         self._router = router
@@ -61,17 +62,17 @@ class FreeboxBaseClass(Entity):
         return self._available
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         if (self._is_device == False):
             return None
-        return {
-            "identifiers": {(DOMAIN, self._id)},
-            "name": self._device_name,
-            "manufacturer": self._manufacturer,
-            "model": self._model,
-            "sw_version": self._firmware,
-        }
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._id)},
+            name=self._device_name,
+            manufacturer=self._manufacturer,
+            model=self._model,
+            sw_version=self._firmware,
+        )
 
     async def set_home_endpoint_value(self, command_id, value):
         #Dummy devices

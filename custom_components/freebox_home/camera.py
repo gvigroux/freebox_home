@@ -1,15 +1,8 @@
 import logging
-import json
-import asyncio
-import aiohttp
-import async_timeout
-import collections
 
 from typing import Dict
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
-from homeassistant.helpers import config_validation as cv, entity_platform, service
+from homeassistant.helpers import entity_platform
 
 from homeassistant.components.ffmpeg.camera import (
     FFmpegCamera,
@@ -19,27 +12,10 @@ from homeassistant.components.ffmpeg.camera import (
 )
 
 from homeassistant.components.camera import (
-    DEFAULT_CONTENT_TYPE,
-    PLATFORM_SCHEMA,
     CameraEntityFeature,
-    Camera,
 )
 from homeassistant.const import (
-    CONF_AUTHENTICATION,
     CONF_NAME,
-    CONF_PASSWORD,
-    CONF_USERNAME,
-    CONF_VERIFY_SSL,
-    HTTP_BASIC_AUTHENTICATION,
-    HTTP_DIGEST_AUTHENTICATION,
-)
-
-from homeassistant.components.generic.camera import (
-    CONF_CONTENT_TYPE,
-    CONF_LIMIT_REFETCH_TO_URL_CHANGE,
-    CONF_STILL_IMAGE_URL,
-    CONF_STREAM_SOURCE,
-    CONF_FRAMERATE
 )
 
 from .base_class import FreeboxBaseClass
@@ -48,37 +24,6 @@ from .router import FreeboxRouter
 
 
 _LOGGER = logging.getLogger(__name__)
-
-'''
-async def async_setup_entry(hass, entry: ConfigEntry, async_add_entities) -> None:
-    router = hass.data[DOMAIN][entry.unique_id]
-    tracked = set()
-
-    @callback
-    def update_router():
-        add_entities(hass, router, async_add_entities, tracked)
-
-    router.listeners.append(async_dispatcher_connect(hass, router.signal_device_new, update_router))
-    update_router()
-
-    platform = entity_platform.current_platform.get()
-    platform.async_register_entity_service("flip",{},"async_flip",)
-
-
-@callback
-def add_entities(hass, router, async_add_entities, tracked):
-    """Add new cover from the router."""
-    new_tracked = []
-    #_LOGGER.warning(router.nodes)
-    for nodeId, node in router.nodes.items():
-        if (node["category"]!="camera") or (node["id"] in tracked):
-            continue
-        new_tracked.append(FreeboxCamera(hass, router, node))
-        tracked.add(node["id"] )
-
-    if new_tracked:
-        async_add_entities(new_tracked, True)
-'''
 
 async def async_setup_entry(hass, entry, async_add_entities):
     router = hass.data[DOMAIN][entry.unique_id]
@@ -101,8 +46,21 @@ class FreeboxCamera(FreeboxBaseClass, FFmpegCamera):
 
         device_info = {CONF_NAME: node["label"].strip(),CONF_INPUT: node["props"]["Stream"],CONF_EXTRA_ARGUMENTS: DEFAULT_ARGUMENTS }
         FFmpegCamera.__init__(self, hass, device_info)
-        
-        #self._supported_features = CameraEntityFeature.STREAM
+
+        # Default attribute values — overridden by update_parameters()
+        self._motion_detection_enabled = False
+        self._activation_with_alarm = False
+        self._high_quality_video = False
+        self._motion_sensitivity = 0
+        self._motion_threshold = 0
+        self._flip = False
+        self._timestamp = None
+        self._volume_micro = 0
+        self._sound_detection = False
+        self._sound_trigger = False
+        self._rtsp = None
+        self._disk = None
+
         self.update_parameters(node)
         
         self._command_flip              = self.get_command_id(node['show_endpoints'], "slot", "flip")
@@ -113,9 +71,9 @@ class FreeboxCamera(FreeboxBaseClass, FFmpegCamera):
         await entity.set_home_endpoint_value(entity._command_flip, {"value": entity._flip})
 
     @property
-    def state_attributes(self):
+    def extra_state_attributes(self):
         """Return the camera state attributes."""
-        attr = super().state_attributes
+        attr = {}
         attr["motion_detection"]        = self.motion_detection_enabled
         attr["high_quality_video"]      = self._high_quality_video
         attr["flip_video"]              = self._flip
